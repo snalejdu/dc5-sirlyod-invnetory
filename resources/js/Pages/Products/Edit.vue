@@ -1,80 +1,66 @@
 <template>
   <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="fw-bold mb-0">Products</h1>
-      <Link :href="route('products.create')" class="btn btn-primary">Add Product</Link>
-    </div>
-
-    <div class="card shadow-sm">
-      <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Name</th>
-              <th>SKU</th>
-              <th>Price</th>
-              <th>Supplier</th>
-              <th>Stock</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="product in products.data" :key="product.id">
-              <td>{{ product.name }}</td>
-              <td>{{ product.sku }}</td>
-              <td>${{ product.price }}</td>
-              <td>{{ product.supplier?.name }}</td>
-              <td>{{ product.inventory?.quantity || 0 }}</td>
-              <td>
-                <Link :href="route('products.edit', product.id)" class="btn btn-sm btn-outline-primary me-1">Edit</Link>
-                <button @click="deleteProduct(product.id)" class="btn btn-sm btn-outline-danger">Delete</button>
-              </td>
-            </tr>
-            <tr v-if="products.data.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">No products found.</td>
-            </tr>
-          </tbody>
-        </table>
+    <h1 class="fw-bold mb-4">Edit Product</h1>
+    <form @submit.prevent="submit" class="bg-white p-4 rounded shadow" style="max-width: 600px;">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Name</label>
+        <input v-model="form.name" type="text" class="form-control" :class="{ 'is-invalid': form.errors.name }" />
+        <div class="invalid-feedback">{{ form.errors.name }}</div>
       </div>
-    </div>
 
-    <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center mt-3">
-      <small class="text-muted">
-        Showing {{ products.from }}–{{ products.to }} of {{ products.total }} products
-      </small>
-      <nav>
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item" :class="{ disabled: !products.prev_page_url }">
-            <Link class="page-link" :href="products.prev_page_url || '#'">Previous</Link>
-          </li>
-          <li
-            v-for="link in products.links.slice(1, -1)"
-            :key="link.label"
-            class="page-item"
-            :class="{ active: link.active, disabled: !link.url }"
-          >
-            <Link class="page-link" :href="link.url || '#'" v-html="link.label" />
-          </li>
-          <li class="page-item" :class="{ disabled: !products.next_page_url }">
-            <Link class="page-link" :href="products.next_page_url || '#'">Next</Link>
-          </li>
-        </ul>
-      </nav>
-    </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">SKU</label>
+        <input v-model="form.sku" type="text" class="form-control" :class="{ 'is-invalid': form.errors.sku }" />
+        <div class="invalid-feedback">{{ form.errors.sku }}</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Description</label>
+        <textarea v-model="form.description" rows="3" class="form-control" :class="{ 'is-invalid': form.errors.description }"></textarea>
+        <div class="invalid-feedback">{{ form.errors.description }}</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Price</label>
+        <input v-model="form.price" type="number" class="form-control" min="0" :class="{ 'is-invalid': form.errors.price }" />
+        <div class="invalid-feedback">{{ form.errors.price }}</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Supplier</label>
+        <select v-model="form.supplier_id" class="form-select" :class="{ 'is-invalid': form.errors.supplier_id }">
+          <option value="" disabled>Select Supplier</option>
+          <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">{{ supplier.name }}</option>
+        </select>
+        <div class="invalid-feedback">{{ form.errors.supplier_id }}</div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 pt-2">
+        <Link :href="route('products.index')" class="btn btn-secondary">Cancel</Link>
+        <button type="submit" :disabled="form.processing" class="btn btn-primary">Update</button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script setup>
-import { Link, router } from '@inertiajs/vue3'
+import { useForm, Link } from '@inertiajs/vue3'
 import Layout from '../../Layouts/AppLayout.vue'
 
-defineProps(['products'])
 defineOptions({ layout: Layout })
 
-const deleteProduct = (id) => {
-  if (confirm('Are you sure?')) {
-    router.delete(route('products.destroy', id))
-  }
-}
+const props = defineProps({
+  product: Object,
+  suppliers: Array,
+})
+
+const form = useForm({
+  name: props.product.name,
+  sku: props.product.sku,
+  description: props.product.description,
+  price: props.product.price,
+  supplier_id: props.product.supplier_id,
+})
+
+const submit = () => form.put(route('products.update', props.product.id))
 </script>
