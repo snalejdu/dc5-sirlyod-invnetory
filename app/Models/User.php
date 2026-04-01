@@ -29,4 +29,28 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the suppliers for the user.
+     */
+    public function suppliers()
+    {
+        return $this->hasMany(Supplier::class);
+    }
+
+    /**
+     * Get the products for the user.
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Get the inventories for the user.
+     */
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class);
+    }
 }

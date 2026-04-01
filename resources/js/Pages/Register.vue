@@ -1,10 +1,10 @@
 <template>
   <GuestLayout>
     <div class="container d-flex align-items-center justify-content-center min-vh-100">
-      <div class="card shadow-lg" style="width: 100%; max-width: 400px">
+      <div class="card shadow-lg" style="width: 100%; max-width: 500px">
         <div class="card-body p-5">
-          <h1 class="card-title text-center mb-4 fw-bold">Inventory App</h1>
-          <p class="text-center text-muted mb-4">Sign in to your account</p>
+          <h1 class="card-title text-center mb-2 fw-bold">Create Account</h1>
+          <p class="text-center text-muted mb-4">Join us to access the inventory system</p>
 
           <!-- Error Alert -->
           <div v-if="errors.general" class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -12,7 +12,24 @@
             <button type="button" class="btn-close" @click="errors.general = ''" />
           </div>
 
-          <form @submit.prevent="handleLogin">
+          <form @submit.prevent="handleRegister">
+            <!-- Full Name Field -->
+            <div class="mb-3">
+              <label for="name" class="form-label">Full Name</label>
+              <input
+                id="name"
+                v-model="form.name"
+                type="text"
+                class="form-control"
+                :class="{ 'is-invalid': errors.name }"
+                placeholder="John Doe"
+                required
+              />
+              <div v-if="errors.name" class="invalid-feedback d-block">
+                {{ errors.name }}
+              </div>
+            </div>
+
             <!-- Email Field -->
             <div class="mb-3">
               <label for="email" class="form-label">Email Address</label>
@@ -39,42 +56,49 @@
                 type="password"
                 class="form-control"
                 :class="{ 'is-invalid': errors.password }"
-                placeholder="Enter your password"
+                placeholder="Enter a strong password"
                 required
               />
               <div v-if="errors.password" class="invalid-feedback d-block">
                 {{ errors.password }}
               </div>
+              <small class="text-muted">Minimum 8 characters</small>
             </div>
 
-            <!-- Remember Me Checkbox -->
-            <div class="mb-3 form-check">
+            <!-- Confirm Password Field -->
+            <div class="mb-4">
+              <label for="password_confirmation" class="form-label">Confirm Password</label>
               <input
-                id="remember"
-                v-model="form.remember"
-                type="checkbox"
-                class="form-check-input"
+                id="password_confirmation"
+                v-model="form.password_confirmation"
+                type="password"
+                class="form-control"
+                :class="{ 'is-invalid': errors.password_confirmation }"
+                placeholder="Confirm your password"
+                required
               />
-              <label for="remember" class="form-check-label">Remember me</label>
+              <div v-if="errors.password_confirmation" class="invalid-feedback d-block">
+                {{ errors.password_confirmation }}
+              </div>
             </div>
 
-            <!-- Login Button -->
+            <!-- Register Button -->
             <button
               type="submit"
               class="btn btn-primary w-100 mb-3"
               :disabled="processing"
             >
               <span v-if="processing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              {{ processing ? 'Signing in...' : 'Sign In' }}
+              {{ processing ? 'Creating Account...' : 'Create Account' }}
             </button>
           </form>
 
           <hr class="my-4" />
 
-          <!-- Sign Up Link -->
-          <p class="text-center text-muted mb-0">
-            Don't have an account?
-            <Link href="/register" class="text-primary text-decoration-none fw-semibold">Create Account</Link>
+          <!-- Login Link -->
+          <p class="text-center text-muted">
+            Already have an account?
+            <Link href="/login" class="text-primary text-decoration-none fw-semibold">Sign In</Link>
           </p>
         </div>
       </div>
@@ -89,24 +113,33 @@ import GuestLayout from '../Layouts/GuestLayout.vue'
 
 const processing = ref(false)
 const errors = reactive({
+  name: '',
   email: '',
   password: '',
+  password_confirmation: '',
   general: ''
 })
 
 const form = reactive({
+  name: '',
   email: '',
   password: '',
-  remember: false
+  password_confirmation: ''
 })
 
-const handleLogin = async () => {
+const handleRegister = async () => {
   // Clear previous errors
+  errors.name = ''
   errors.email = ''
   errors.password = ''
+  errors.password_confirmation = ''
   errors.general = ''
 
   // Validation
+  if (!form.name) {
+    errors.name = 'Name is required'
+    return
+  }
   if (!form.email) {
     errors.email = 'Email is required'
     return
@@ -115,20 +148,29 @@ const handleLogin = async () => {
     errors.password = 'Password is required'
     return
   }
+  if (form.password.length < 8) {
+    errors.password = 'Password must be at least 8 characters'
+    return
+  }
+  if (form.password !== form.password_confirmation) {
+    errors.password_confirmation = 'Passwords do not match'
+    return
+  }
 
   processing.value = true
 
   try {
-    const response = await fetch('/login', {
+    const response = await fetch('/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
       },
       body: JSON.stringify({
+        name: form.name,
         email: form.email,
         password: form.password,
-        remember: form.remember
+        password_confirmation: form.password_confirmation
       })
     })
 
@@ -136,14 +178,16 @@ const handleLogin = async () => {
 
     if (!response.ok) {
       if (data.errors) {
+        errors.name = data.errors.name?.[0] || ''
         errors.email = data.errors.email?.[0] || ''
         errors.password = data.errors.password?.[0] || ''
+        errors.password_confirmation = data.errors.password_confirmation?.[0] || ''
       }
-      errors.general = data.message || 'Login failed. Please try again.'
+      errors.general = data.message || 'Registration failed. Please try again.'
       return
     }
 
-    // Redirect on successful login
+    // Redirect on successful registration
     if (data.redirect) {
       window.location.href = data.redirect
     }
@@ -158,10 +202,6 @@ const handleLogin = async () => {
 <style scoped>
 .min-vh-100 {
   min-height: 100vh;
-}
-
-.alert-sm {
-  font-size: 0.875rem !important;
 }
 
 .spinner-border-sm {

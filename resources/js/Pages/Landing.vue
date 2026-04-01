@@ -10,7 +10,7 @@
               <p class="lead mb-4">Browse our extensive catalog of high-quality tools and equipment from leading suppliers.</p>
               <div class="d-flex gap-3">
                 <Link href="/login" class="btn btn-light btn-lg">Sign In</Link>
-                <a href="#products" class="btn btn-outline-light btn-lg">Browse Products</a>
+                <Link href="/register" class="btn btn-outline-light btn-lg">Create Account</Link>
               </div>
             </div>
             <div class="col-lg-6 text-center">

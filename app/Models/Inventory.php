@@ -10,7 +10,7 @@ class Inventory extends Model
     use HasFactory;
 
     protected $fillable = [
-        'product_id', 'quantity', 'location', 'last_restocked', 'reorder_level'
+        'product_id', 'quantity', 'location', 'last_restocked', 'reorder_level', 'user_id'
     ];
 
     protected $casts = [
@@ -20,5 +20,10 @@ class Inventory extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class AuthController extends Controller
@@ -14,6 +16,42 @@ class AuthController extends Controller
     public function showLogin()
     {
         return Inertia::render('Login');
+    }
+
+    /**
+     * Show the registration form
+     */
+    public function showRegister()
+    {
+        return Inertia::render('Register');
+    }
+
+    /**
+     * Handle registration request
+     */
+    public function handleRegister(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // Create the user
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        // Auto-login after registration
+        Auth::login($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account created successfully',
+            'redirect' => route('dashboard')
+        ]);
     }
 
     /**

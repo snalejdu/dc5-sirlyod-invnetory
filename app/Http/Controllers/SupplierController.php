@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class SupplierController extends Controller
 {
     public function index()
     {
-        $suppliers = Supplier::with('products')->paginate(10);
+        $suppliers = Supplier::where('user_id', Auth::id())
+            ->with('products')
+            ->paginate(10);
         return Inertia::render('Suppliers/Index', [
             'suppliers' => $suppliers
         ]);
@@ -31,6 +34,7 @@ class SupplierController extends Controller
             'contact_person' => 'required|string|max:255',
         ]);
 
+        $validated['user_id'] = Auth::id();
         Supplier::create($validated);
 
         return redirect()->route('suppliers.index')
@@ -39,6 +43,8 @@ class SupplierController extends Controller
 
     public function edit(Supplier $supplier)
     {
+        $this->authorize('view', $supplier);
+
         return Inertia::render('Suppliers/Edit', [
             'supplier' => $supplier
         ]);
@@ -46,6 +52,8 @@ class SupplierController extends Controller
 
     public function update(Request $request, Supplier $supplier)
     {
+        $this->authorize('update', $supplier);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:suppliers,email,' . $supplier->id,
@@ -62,6 +70,7 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
+        $this->authorize('delete', $supplier);
         $supplier->delete();
 
         return redirect()->route('suppliers.index')

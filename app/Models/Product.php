@@ -10,7 +10,7 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'sku', 'description', 'price', 'supplier_id'
+        'name', 'sku', 'description', 'price', 'supplier_id', 'user_id'
     ];
 
     public function supplier()
@@ -21,5 +21,10 @@ class Product extends Model
     public function inventory()
     {
         return $this->hasOne(Inventory::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
