@@ -25,6 +25,27 @@
             <Link href="/inventories" class="nav-link">Inventory</Link>
           </li>
         </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item dropdown">
+            <button
+              class="nav-link dropdown-toggle btn btn-link"
+              id="userDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="bi bi-person-circle"></i> Account
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li>
+                <form @submit.prevent="logout" class="d-inline">
+                  <button type="submit" class="dropdown-item">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </li>
+        </ul>
       </div>
     </nav>
 
@@ -36,4 +57,19 @@
 
 <script setup>
 import { Link } from '@inertiajs/vue3'
+import { ref } from 'vue'
+
+const logout = async () => {
+  const response = await fetch('/logout', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+    }
+  })
+
+  if (response.ok) {
+    window.location.href = '/login'
+  }
+}
 </script>
